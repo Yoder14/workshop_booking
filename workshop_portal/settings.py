@@ -48,8 +48,31 @@ INSTALLED_APPS = [
     'workshop_app',
     'recurrence',
     'statistics_app',
+    'oauth2_provider',
+    # 'rest_framework',
 ]
 
+# OAUTH2_PROVIDER = {
+#     # this is the list of available scopes
+#     'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+# }
+
+# # REST_FRAMEWORK = {
+# #     'DEFAULT_AUTHENTICATION_CLASSES': (
+# #         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+# #     ),
+
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.IsAuthenticated',
+#     )
+# }
+
+AUTHENTICATION_BACKENDS = (
+    'oauth2_provider.backends.OAuth2Backend',
+    # Uncomment following if you want to access the admin
+    'django.contrib.auth.backends.ModelBackend'
+    # '...',
+)
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,6 +81,10 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # If you use SessionAuthenticationMiddleware, be sure it appears before OAuth2TokenMiddleware.
+    # SessionAuthenticationMiddleware is NOT required for using django-oauth-toolkit.
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
 
 ]
 
@@ -143,15 +170,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "workshop_app", "data")
 LOG_FOLDER = os.path.join(BASE_DIR, "workshop_app", "logs")
 
 #Email Connection Settings
-EMAIL_HOST = EMAIL_HOST
-EMAIL_HOST_USER = EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
-EMAIL_PORT = EMAIL_PORT
-EMAIL_USE_TLS = EMAIL_USE_TLS
-EMAIL_TIMEOUT = 300
-SENDER_EMAIL = SENDER_EMAIL
+# EMAIL_HOST = EMAIL_HOST
+# EMAIL_HOST_USER = EMAIL_HOST_USER
+# EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+# EMAIL_PORT = EMAIL_PORT
+# EMAIL_USE_TLS = EMAIL_USE_TLS
+# EMAIL_TIMEOUT = 300
+# SENDER_EMAIL = SENDER_EMAIL
 
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 #Change this to the production url
 PRODUCTION_URL = 'your_production_url'
@@ -163,4 +190,4 @@ SHOW_WORKSHOP_STATS = False #Set True or False to view/hide
 LOGIN_REDIRECT_URL = '/profile'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 360
+SESSION_COOKIE_AGE = 360000

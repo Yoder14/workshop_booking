@@ -11,6 +11,7 @@ from .models import (
             Testimonial
             )
 from datetime import datetime, date
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -23,10 +24,13 @@ from textwrap import dedent
 from django.conf import settings
 from os import listdir, path, sep
 from zipfile import ZipFile
+from oauth2_provider.views.generic import ProtectedResourceView
+from django.http import HttpResponse
 from django.contrib import messages
 import datetime as dt
 import csv
 import logging
+import requests
 try:
     from StringIO import StringIO as string_io
 except ImportError:
@@ -38,6 +42,12 @@ __credits__ = ["Mahesh Gudi", "Aditya P.", "Ankit Javalkar",
                 "KhushalSingh Rajput", "Prabhu Ramachandran",
                 "Arun KP"]
 
+# class ApiEndpoint(ProtectedResourceView):
+#     def get(self, request, *args, **kwargs):
+#         return HttpResponse('Hello, OAuth2!')
+# @login_required()
+# def secret_page(request, *args, **kwargs):
+#     return HttpResponse('Secret contents!', status=200)
 
 def is_email_checked(user):
     if hasattr(user, 'profile'):
@@ -466,8 +476,8 @@ def my_workshops(request):
                     cnum = ws.requested_workshop_coordinator.profile.phone_number
                     cinstitute = ws.requested_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
+                    iemail=request.user.profile.email
                     wtitle = ws.requested_workshop_title.workshoptype_name
-
                     #For Instructor
                     send_email(request, call_on='Booking Confirmed',
                         user_position='instructor',
@@ -547,7 +557,23 @@ def my_workshops(request):
                     cnum = ws.proposed_workshop_coordinator.profile.phone_number
                     cinstitute = ws.proposed_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
+                    iemail=request.user.profile.email
                     wtitle = ws.proposed_workshop_title.workshoptype_name
+                    #data to be sent to yaksh API
+                    workshop_data=dict(
+                        workshop_date=workshop_date,
+                        workshop_status=ws,
+                        coordinator_mail=cmail,
+                        coordinator_name=cname,
+                        coordinator_contact =cnum,
+                        coordinator_Institute=cinstitute,
+                        instructor_contact=inum,
+                        workshop_title = wtitle,
+                        instructor_mail=iemail
+                        )
+                    yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
+                    print("post data sent to yaksh\nresponse is : ",yaksh_response)
+
 
                     #For Instructor
                     send_email(request, call_on='Booking Confirmed',
