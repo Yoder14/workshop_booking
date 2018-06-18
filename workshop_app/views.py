@@ -476,7 +476,7 @@ def my_workshops(request):
                     cnum = ws.requested_workshop_coordinator.profile.phone_number
                     cinstitute = ws.requested_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
-                    iemail=request.user.profile.email
+                    # iemail=request.user.profile.email
                     wtitle = ws.requested_workshop_title.workshoptype_name
                     #For Instructor
                     send_email(request, call_on='Booking Confirmed',
@@ -557,7 +557,7 @@ def my_workshops(request):
                     cnum = ws.proposed_workshop_coordinator.profile.phone_number
                     cinstitute = ws.proposed_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
-                    iemail=request.user.profile.email
+                    
                     wtitle = ws.proposed_workshop_title.workshoptype_name
                     #data to be sent to yaksh API
                     workshop_data=dict(
@@ -569,7 +569,7 @@ def my_workshops(request):
                         coordinator_Institute=cinstitute,
                         instructor_contact=inum,
                         workshop_title = wtitle,
-                        instructor_mail=iemail
+                        instructor_mail=(User.objects.get(id=request.user.profile.user_id)).email
                         )
                     yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
                     print("post data sent to yaksh\nresponse is : ",yaksh_response)
