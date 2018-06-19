@@ -560,7 +560,12 @@ def my_workshops(request):
                     
                     wtitle = ws.proposed_workshop_title.workshoptype_name
                     #data to be sent to yaksh API
+                    
+                    auth_user=User.objects.get(id=request.user.profile.user_id)
                     workshop_data=dict(
+                        instructor_username=auth_user.username,
+                        instructor_first_name=auth_user.first_name,
+                        instructor_last_name=auth_user.last_name,
                         workshop_date=workshop_date,
                         workshop_status=ws,
                         coordinator_mail=cmail,
@@ -572,7 +577,7 @@ def my_workshops(request):
                         instructor_mail=(User.objects.get(id=request.user.profile.user_id)).email
                         )
                     yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
-                    print("post data sent to yaksh\nresponse is : ",yaksh_response)
+                    print("post data sent to yaksh\nresponse is : ",yaksh_response.json())
 
 
                     #For Instructor
