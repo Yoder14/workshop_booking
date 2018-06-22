@@ -49,6 +49,26 @@ __credits__ = ["Mahesh Gudi", "Aditya P.", "Ankit Javalkar",
 # def secret_page(request, *args, **kwargs):
 #     return HttpResponse('Secret contents!', status=200)
 
+def autocourse(user,auth_user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position):
+    workshop_data=dict(
+                        instructor_username=auth_user.username,
+                        instructor_first_name=auth_user.first_name,
+                        instructor_last_name=auth_user.last_name,
+                        workshop_date=workshop_date,
+                        workshop_status=ws,
+                        coordinator_mail=cmail,
+                        coordinator_name=cname,
+                        coordinator_contact =cnum,
+                        coordinator_Institute=cinstitute,
+                        instructor_contact=inum,
+                        workshop_title = wtitle,
+                        instructor_mail=(User.objects.get(id=user.profile.user_id)).email,
+                        position=user_position
+                    )
+    yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
+    print("post data sent to yaksh\nresponse is : ",yaksh_response.json())
+
+
 def is_email_checked(user):
     if hasattr(user, 'profile'):
         return True if user.profile.is_email_verified else False
@@ -478,6 +498,8 @@ def my_workshops(request):
                     inum = request.user.profile.phone_number
                     # iemail=request.user.profile.email
                     wtitle = ws.requested_workshop_title.workshoptype_name
+                    autocourse(request.user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position)
+
                     #For Instructor
                     send_email(request, call_on='Booking Confirmed',
                         user_position='instructor',
@@ -562,22 +584,7 @@ def my_workshops(request):
                     #data to be sent to yaksh API
                     
                     auth_user=User.objects.get(id=request.user.profile.user_id)
-                    workshop_data=dict(
-                        instructor_username=auth_user.username,
-                        instructor_first_name=auth_user.first_name,
-                        instructor_last_name=auth_user.last_name,
-                        workshop_date=workshop_date,
-                        workshop_status=ws,
-                        coordinator_mail=cmail,
-                        coordinator_name=cname,
-                        coordinator_contact =cnum,
-                        coordinator_Institute=cinstitute,
-                        instructor_contact=inum,
-                        workshop_title = wtitle,
-                        instructor_mail=(User.objects.get(id=request.user.profile.user_id)).email
-                        )
-                    yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
-                    print("post data sent to yaksh\nresponse is : ",yaksh_response.json())
+                    autocourse(request.user,auth_user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position)
 
 
                     #For Instructor
