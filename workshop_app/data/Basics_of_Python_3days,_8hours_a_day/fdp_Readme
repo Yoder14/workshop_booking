@@ -1,0 +1,207 @@
+This is a basic poll application, I have followed the https://docs.djangoproject.com/en/1.10/intro/tutorial01/ tutorial for developing this application.
+The two parts in this project are "public site"(view polls and vote) and "admin site" (manage polls).
+
+Django  Version :1.10
+
+creating the Project: $django-admin startproject <project_directory_name(root directory)>
+
+my choice is "first_django_project". This directory contains first_django_project/manage.py, first_django_project(actual python package)/__init__.py, settings.py, urls.py wsgi.py
+
+
+To check whether the project is working change into outer project directory where manage.py is present and run the command "$ python manage.py runserver"
+
+You’ll see the following output on the command line:
+
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have unapplied migrations; your app may not work properly until they are applied.
+Run 'python manage.py migrate' to apply them.
+
+November 23, 2017 - 15:50:53
+Django version 1.10, using settings 'mysite.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C
+
+
+By default, the runserver command starts the development server on the internal IP at port 8000. We can change it by using the command "$ python manage.py runserver <port_number>"
+
+By now we have created an environment for our project
+to build apps for the project use the command in  the outer project site"$ python manage.py startapp <app_name>"
+
+That’ll create a directory polls, which is laid out like this:
+
+<app_name>/__init__.py, admin.py, apps.py, migrations/__init__.py, models.py, tests.py, views.py
+
+Writing Views
+
+write functions returning http response for a request (index())
+
+In urls.py add the url pattern for index 
+
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+]
+
+for better results add the uru--ls for each app 
+in my project I've done this 
+
+first_django_project/urls.py
+
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^polls/', include('polls.urls')),
+    url(r'^admin/', admin.site.urls),
+]
+
+again run the server and check the change you've made
+
+
+The default database used is SQLite, for heavy applications we can use Mysql,PostgreSQL
+
+To use any other databases, configure your DATABASES 'default' matching your db connection settings.
+
+
+    ENGINE – Either 'django.db.backends.sqlite3', 'django.db.backends.postgresql', 'django.db.backends.mysql', or 'django.db.backends.oracle'. Other backends are also available.
+    NAME – The name of your database. If you’re using SQLite, the database will be a file on your computer; in that case, NAME should be the full absolute path, including filename, of that file. The default value, os.path.join(BASE_DIR, 'db.sqlite3'), will store the file in your project directory.
+
+
+To create the tables in the database before we can use them, run the following command:
+"$ python manage.py migrate"
+
+The migrate command looks at the INSTALLED_APPS setting and creates any necessary database tables according to the database settings in your first_django_project/settings.py file and the database migrations shipped with the app
+
+Creating Models :
+
+In our simple poll app, we’ve created two models: Question and Choice. A Question has a question and a publication date. A Choice has two fields: the text of the choice and a vote tally. Each Choice is associated with a Question.
+
+polls/models.py
+
+pseudo code for the models:
+
+
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0)
+
+After the above code we have,
+    Created a database schema (CREATE TABLE statements) for this app.
+    Created a Python database-access API for accessing Question and Choice objects.
+
+
+To include the app in our project, we need to add a reference to its configuration class in the INSTALLED_APPS setting. The PollsConfig class is in the polls/apps.py file, so its dotted path is 'polls.apps.PollsConfig'. Edit the first_django_project/settings.py file and add that dotted path to the INSTALLED_APPS setting.
+
+run the command to 
+$ python manage.py makemigrations polls
+By running makemigrations, you’re telling Django that you’ve made some changes to your models (in this case, you’ve made new ones) and that you’d like the changes to be stored as a migration.
+
+There’s a command that will run the migrations for you and manage your database schema automatically - that’s called migrate,
+
+$ python manage.py migrate
+
+The migrate command takes all the migrations that haven’t been applied (Django tracks which ones are applied using a special table in your database called django_migrations) and runs them against your database - essentially, synchronizing the changes you made to your models with the schema in the database.
+
+$ python manage.py sqlmigrate polls 0001
+
+Summary for DBM:
+
+    Change your models (in models.py).
+    Run python manage.py makemigrations to create migrations for those changes
+    Run python manage.py migrate to apply those changes to the database.
+
+While interacting with API use "$ python manage.py shell" instead of simply typing “python”, because manage.py sets the DJANGO_SETTINGS_MODULE environment variable, which gives Django the Python import path to your mysite/settings.py file
+
+exploring Database :
+some examples:
+
+from polls.models import Question, Choice
+>>> Question.objects.all()
+<QuerySet []>
+>>> from django.utils import timezone
+>>> q = Question(question_text="What's new?", pub_date=timezone.now())
+
+>>> q.save()
+
+>>> q.id
+1
+
+>>> q.question_text
+"What's new?"
+>>> q.pub_date
+datetime.datetime(2012, 2, 26, 13, 0, 0, 775217, tzinfo=<UTC>)
+
+>>> q.question_text = "What's up?"
+>>> q.save()
+
+>>> Question.objects.all()
+<QuerySet [<Question: Question object>]>
+
+
+
+Creating admin User :
+$ python manage.py createsuperuser
+Username: admin
+Email address: admin@example.com
+Password: **********
+Password (again): *********
+Superuser created successfully.
+
+use $ python manage.py runserver to run the server
+
+login to the account 
+
+we need to tell the admin that Question objects have an admin interface. To do this, open the polls/admin.py file, and edit it to look like this:
+
+admin.site.register(Question)
+
+
+
+
+
+Start writing your views :
+write your view functions and update them on polls/urls.py
+
+update the index view you have created before.
+
+
+
+add templates to make the app have more interface
+
+raise 404 error using Http404() or get_object_or_404()
+
+
+add namespacing to the urls so that you would'nt get confused while creating multiple apps
+
+
+update the detail.html page by giving a better UI
+
+also update the results view and results.html page
+
+
+Start testing by creating automated tests
+save those test files in the polls/ 
+
+
+for running the test :"$ python manage.py test polls "
+
+make the tests more comprehensive and start testing all the views
+
+use CSS and make style your pages
+
+
+Customise the admin form 
+
+
+
+
+
+

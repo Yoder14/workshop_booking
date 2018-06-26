@@ -42,15 +42,13 @@ __credits__ = ["Mahesh Gudi", "Aditya P.", "Ankit Javalkar",
                 "KhushalSingh Rajput", "Prabhu Ramachandran",
                 "Arun KP"]
 
-# class ApiEndpoint(ProtectedResourceView):
-#     def get(self, request, *args, **kwargs):
-#         return HttpResponse('Hello, OAuth2!')
-# @login_required()
-# def secret_page(request, *args, **kwargs):
-#     return HttpResponse('Secret contents!', status=200)
 
-def autocourse(user,auth_user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position):
-    workshop_data=dict(
+def create_workshop_course(user, auth_user, workshop_date, ws, cmail, cname, cnum, cinstitute,
+                inum, wtitle, user_position):
+    """ requests yaksh portal to create a course """
+    imail = User.objects.get(id=user.profile.user_id).email
+    # post data to be sent to yaksh
+    workshop_data = dict(
                         instructor_username=auth_user.username,
                         instructor_first_name=auth_user.first_name,
                         instructor_last_name=auth_user.last_name,
@@ -58,15 +56,16 @@ def autocourse(user,auth_user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,
                         workshop_status=ws,
                         coordinator_mail=cmail,
                         coordinator_name=cname,
-                        coordinator_contact =cnum,
                         coordinator_Institute=cinstitute,
+                        workshop_title=wtitle,
+                        instructor_mail=imail,
                         instructor_contact=inum,
-                        workshop_title = wtitle,
-                        instructor_mail=(User.objects.get(id=user.profile.user_id)).email,
+                        coordinator_contact=cnum,
                         position=user_position
-                    )
-    yaksh_response=requests.post("http://127.0.0.1:8001/exam/course_accepted/",data=workshop_data)
-    print("post data sent to yaksh\nresponse is : ",yaksh_response.json())
+                    )    
+    yaksh_response = requests.post("http://127.0.0.1:8001/exam/workshop_course/",
+                                    data=workshop_data)
+    print("post data sent to yaksh\nresponse is : ", yaksh_response)
 
 
 def is_email_checked(user):
@@ -102,7 +101,7 @@ def index(request):
             return redirect('/book/')
 
     return render(request, "workshop_app/index.html", {"form": form,
-        "testimonials": testimonials })
+        "testimonials": testimonials})
 
 
 def is_instructor(user):
@@ -468,6 +467,7 @@ def my_workshops(request):
     if user.is_authenticated() and is_email_checked(user):
         if is_instructor(user):
             if request.method == 'POST':
+                auth_user = User.objects.get(id=request.user.profile.user_id)
                 user_position = request.user.profile.position
                 client_data = request.body.decode("utf-8").split("&")
                 client_data = client_data[0].split("%2C")
@@ -475,7 +475,6 @@ def my_workshops(request):
                     workshop_date = datetime.strptime(
                                         client_data[1], "%Y-%m-%d"
                                         )
-
                     coordinator_obj = User.objects.get(username=client_data[0][2:])
 
                     workshop_status = RequestedWorkshop.objects.get(
@@ -496,11 +495,11 @@ def my_workshops(request):
                     cnum = ws.requested_workshop_coordinator.profile.phone_number
                     cinstitute = ws.requested_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
-                    # iemail=request.user.profile.email
                     wtitle = ws.requested_workshop_title.workshoptype_name
-                    autocourse(request.user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position)
+                    create_workshop_course(request.user, auth_user, workshop_date, ws, cmail, cname,
+                                cnum, cinstitute, inum, wtitle, user_position)
 
-                    #For Instructor
+                    # For Instructor
                     send_email(request, call_on='Booking Confirmed',
                         user_position='instructor',
                         workshop_date=str(client_data[1]),
@@ -511,7 +510,7 @@ def my_workshops(request):
                         institute=cinstitute
                         )
 
-                    #For Coordinator
+                    # For Coordinator
                     send_email(request, call_on='Booking Confirmed',
                         workshop_date=str(client_data[1]),
                         workshop_title=wtitle,
@@ -547,7 +546,7 @@ def my_workshops(request):
                                 bW_obj.booked_workshop_requested = rW_obj
                                 bW_obj.save()
 
-                    #For instructor
+                    # For instructor
                     send_email(request, call_on='Workshop Deleted',
                         workshop_date=str(client_data[1]),
                         workshop_title=workshop.workshop_title
@@ -579,15 +578,10 @@ def my_workshops(request):
                     cnum = ws.proposed_workshop_coordinator.profile.phone_number
                     cinstitute = ws.proposed_workshop_coordinator.profile.institute
                     inum = request.user.profile.phone_number
-                    
                     wtitle = ws.proposed_workshop_title.workshoptype_name
-                    #data to be sent to yaksh API
-                    
-                    auth_user=User.objects.get(id=request.user.profile.user_id)
-                    autocourse(request.user,auth_user,workshop_date,ws,cmail,cname,cnum,cinstitute,inum,wtitle,user_position)
-
-
-                    #For Instructor
+                    create_workshop_course(request.user, auth_user, workshop_date, ws, cmail,
+                                cname, cnum, cinstitute, inum, wtitle, user_position)
+                    # For Instructor
                     send_email(request, call_on='Booking Confirmed',
                         user_position='instructor',
                         workshop_date=str(client_data[1]),
@@ -598,8 +592,8 @@ def my_workshops(request):
                         institute=cinstitute
                         )
 
-                    #For Coordinator
-                    send_email(request, call_on='Booking Confirmed',  
+                    # For Coordinator
+                    send_email(request, call_on='Booking Confirmed',
                         workshop_date=str(client_data[1]),
                         workshop_title=wtitle,
                         other_email=cmail,
