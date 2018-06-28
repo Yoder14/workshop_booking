@@ -90,7 +90,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('workshop_app.urls')),
     url(r'^', include('workshop_app.urls_password_reset')),
-    url(r'^o/', include(oauth2_endpoint_views, namespace="oauth2_provider")),
+    url(r'^o/', include('oauth2_provider.urls', namespace="oauth2_provider")),
     # url(r'^api/hello', ApiEndpoint.as_view()),  # an example resource endpoint
     url(r'^', include('statistics_app.urls')),
     # url(r'^secret$', 'my.views.secret_page', name='secret'),

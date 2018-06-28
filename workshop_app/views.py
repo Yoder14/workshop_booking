@@ -48,6 +48,11 @@ def create_workshop_course(user, auth_user, workshop_date, ws, cmail, cname, cnu
     """ requests yaksh portal to create a course """
     imail = User.objects.get(id=user.profile.user_id).email
     # post data to be sent to yaksh
+    data = [('grant_type','client_credentials')]
+    response=requests.post('http://localhost:8001/o/token/',data= data,
+    auth=('Z95BstQYnhy0DDVL9MhXE7Ikdpsou8HnFUboQ164',
+        '30Ou7vl7ZefryhGR7VDgP8LszwnCiBL58WQ4s1PpLwef0k64fGUt4gvDBKQ7JiL8oytKWyC7Ni6dDdxQ64BtQzdKb1WWVC8ceJ5i3xkJQsxKyJKIAkTIOivudN43i2r4'))
+    access_token=response.json()['access_token']
     workshop_data = dict(
                         instructor_username=auth_user.username,
                         instructor_first_name=auth_user.first_name,
@@ -61,8 +66,9 @@ def create_workshop_course(user, auth_user, workshop_date, ws, cmail, cname, cnu
                         instructor_mail=imail,
                         instructor_contact=inum,
                         coordinator_contact=cnum,
-                        position=user_position
-                    )    
+                        position=user_position,
+                        access_token=access_token
+                        )    
     yaksh_response = requests.post("http://127.0.0.1:8001/exam/workshop_course/",
                                     data=workshop_data)
     print("post data sent to yaksh\nresponse is : ", yaksh_response)
